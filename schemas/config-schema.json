@@ -1,0 +1,141 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://humana.com/wpa/code/foundation/dotnet-repo-init.json",
+    "title" : "Initialize Dotnet Repo",
+    "description": "Settings for generating a new dotnet core repo that hosts specified project type",
+    "type" :"object",
+    "properties": {
+        "user": {
+            "name" :{
+                "description":"name of user requesting this repo",
+                "type":"string"
+            },
+            "email":{                
+                "description" : "email of user creating this repo",
+                "type":"string",
+                "format": "email",
+                "pattern": "^[a-zA-z]*[0-9]*@humana\\.com"
+            },
+            "required": ["name", "email"]
+        },
+        "repo":{
+            "description": "Repository configuration",
+            "type":"object",
+            "properties": {
+                "name":{
+                    "description": "Name of Git repo",
+                    "type":"string"                    
+                },
+                "folders":{
+                    "type" : "array",
+                    "items": {
+                        "type" :"string"
+                    }
+                },
+                "url":{
+                    "description": "Remote Git repo URL to push to",
+                    "type":"string"
+                }               
+            },
+            "required": ["name", "url"]
+        },
+        "cmd":{
+            "description": "dotnet cli command configuration",
+            "type":"object",
+            "properties": {
+                "cli" :{
+                    "description": "Language used in project used to initialize project",
+                    "type":"string",
+                    "enum": ["dotnet", "node", "rust", "golang"]
+                },
+                "name":{
+                    "description": "Name to be given to project",
+                    "type":"string"
+                },
+                "dotnet-type":{
+                    "description": "Type of dotnet project -- limited support for now",
+                    "type":"string",
+                    "enum": ["mvc", "web", "webapp", "classlib", "webapi", "console"]
+                }                
+            },
+            "required":["name","type"]
+            
+        },
+        "sonarqube":{
+            "description": "SonarQube configuration values",
+            "type" :"object",
+            "properties": {
+                "key":{"type":"string"},
+                "name":{"type": "string"}
+            },
+            "required": ["key", "name"]
+        },
+        "sec-api":{
+                "description": "SonarQube configuration values",
+                "type" :"object",
+                "properties": {
+                    "applicationId":{"type":"string"},
+                    "name":{"type": "string"}
+                },
+                "required": ["applicationId"]
+        },        
+        "asset-yml":{
+            "description": "Asset.yml configuration values",
+            "type":"object",
+            "properties": {
+                "iserverAssociatedRecords":{
+                    "description": "iServer association section of asset.yml",
+                    "type":"array",
+                    "items": {
+                        "$ref": "#/definitions/iserverRecord"
+                    },
+                    "minItems": 2                                  
+                },
+                "serviceNowAssociatedRecords":{
+                    "description": "Service-Now association section of asset.yml",
+                    "type":"object",
+                    "properties": {
+                        "type":{
+                            "description": "Type of iServer object",
+                            "type":"string",
+                            "enum": ["AppService","CoreInfrastructure "]
+                        },
+                        "id":{
+                            "description":"snow app id",
+                            "type": "string"
+                        },
+                        "description":{
+                            "description":"Brief description of object",
+                            "type":"string"                
+                        },
+                        "technology":{
+                            "description":"Technology of project",
+                            "type":"string",
+                            "enum": ["DotNetCore"]
+                        }
+                    },
+                    "required": ["type", "id"]                                   
+                }
+            }
+        }
+    },
+    "definitions": {
+        "iserverRecord":{
+            "description": "Values for iServer section of asset.yml",
+            "type":"object",
+            "properties": {
+                "type":{
+                    "description": "Type of iServer object",
+                    "type":"string",
+                    "enum": ["asset","component","service","dataStore"]                               
+                },
+                "id":{
+                    "description":"record-number",
+                    "type":"number"
+                }
+            },
+            "required": ["type", "id"]       
+        }
+    }
+}
+

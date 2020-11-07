@@ -1,0 +1,225 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+resources:
+  repositories:
+  - repository: foundationAzure
+    type: git    
+    name: Customer Experience Management/foundation-azure
+    ref: refs/heads/experimental/sbanjanovic/wpa-foundation
+
+
+trigger: none
+
+stages:
+- stage: Code
+  condition: and(ne(variables.config, ''), eq(variables.generateRepo, True))
+  jobs:
+    - job: InitCodeRepo
+      
+      variables:
+        schema: 'config-schema.json'
+
+      pool: 
+        vmImage: 'windows-latest'
+
+      steps:
+      - task: PowerShell@2
+        displayName: 'Install prerequisites'    
+        inputs:
+          errorActionPreference: stop
+          targetType: 'inline'
+          script: |          
+            .\scripts\install-prerequisites.ps1        
+          pwsh: true
+          
+      - task: PowerShell@2
+        displayName: 'Create Scaffolding'    
+        inputs:
+          errorActionPreference: stop
+          targetType: 'inline'
+          script: |          
+            .\scripts\create-scaffolding.ps1 configs\$(config) schemas\$(schema)
+          pwsh: true
+
+      - task: PowerShell@2
+        displayName: 'Create Pipeline'  
+        inputs:
+          errorActionPreference: stop
+          targetType: 'inline'
+          script: |          
+            .\scripts\create-pipeline.ps1 configs\$(config) schemas\$(schema)
+          pwsh: true
+
+      - task: PowerShell@2
+        displayName: 'Init and Push Repo'
+        env:
+          GIT_ADO_PAT: $(System.AccessToken)      
+        inputs:
+          errorActionPreference: stop
+          targetType: 'inline'
+          script: |          
+            .\scripts\create-git.ps1 configs\$(config) schemas\$(schema)
+          pwsh: true
+
+- stage: Dev  
+  condition: and(eq(variables['build.SourceBranch'], 'refs/heads/master'), ne(variables.appName, ''), eq(variables.createDevInfra, True))
+  jobs:
+  - job: CreateInfrastructure
+
+    variables:
+      ResourceGroupName: at-digital-myhumana-dev-nonprod-east2-rg
+      TemplateFileName: MyHumanaApi/app-service-deploy-with-stack.json
+      
+    pool:
+      name: VS2017
+
+    steps:
+    - checkout: foundationAzure
+
+    - task: AzurePowerShell@1
+      displayName: 'Create App Service'
+      inputs:
+        ConnectedServiceNameSelector: ConnectedServiceNameARM
+        ConnectedServiceNameARM: 'azure-nonprod-digital'
+        ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+        ScriptArguments: '-ResourceGroupName "$(ResourceGroupName)" -TemplateFileName "$(TemplateFileName)" -TemplateParametersFileName "$(DevTemplateParametersFileName)"'
+
+- stage: Int
+  condition: and(eq(variables['build.SourceBranch'], 'refs/heads/master'), ne(variables.appName, ''), eq(variables.createIntInfra, True))
+  jobs:
+  - job: CreateInfrastructure
+
+    variables:
+      ResourceGroupName: at-digital-myhumana-Int-nonprod-east2-rg
+      TemplateFileName: MyHumanaApi/app-service-deploy-with-stack.json
+      
+    pool:
+      name: VS2017
+
+    steps:
+    - checkout: foundationAzure
+
+    - task: AzurePowerShell@1
+      displayName: 'Create App Service'
+      inputs:
+        ConnectedServiceNameSelector: ConnectedServiceNameARM
+        ConnectedServiceNameARM: 'azure-nonprod-digital'
+        ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+        ScriptArguments: '-ResourceGroupName "$(ResourceGroupName)" -TemplateFileName "$(TemplateFileName)" -TemplateParametersFileName "$(IntTemplateParametersFileName)"'
+
+- stage: Qa  
+  condition: and(eq(variables['build.SourceBranch'], 'refs/heads/master'), eq(variables.createQaInfra, True))
+  jobs:
+  - job: CreateInfrastructure
+
+    variables:
+      ResourceGroupName: at-digital-myhumana-qa-nonprod-east2-rg
+      TemplateFileName: MyHumanaApi/app-service-deploy-with-stack.json
+      
+    pool:
+      name: VS2017
+
+    steps:
+    - checkout: foundationAzure
+
+    - task: AzurePowerShell@1
+      displayName: 'Create App Service'
+      inputs:
+        ConnectedServiceNameSelector: ConnectedServiceNameARM
+        ConnectedServiceNameARM: 'azure-nonprod-digital'
+        ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+        ScriptArguments: '-ResourceGroupName "$(ResourceGroupName)" -TemplateFileName "$(TemplateFileName)" -TemplateParametersFileName "$(QaTemplateParametersFileName)"'
+
+# - stage: StageCentral  
+#   condition: and(eq(variables['build.SourceBranch'], 'refs/heads/master'), eq(variables.createStageCentralInfra, True))
+#   jobs:
+#   - job: CreateInfrastructure
+
+#     variables:
+#       ResourceGroupName: at-digital-myhumana-stage-prod-central-rg
+#       TemplateFileName: MyHumanaApi/app-service-deploy-with-stack.json
+      
+#     pool:
+#       name: VS2017
+
+#     steps:
+#     - checkout: foundationAzure
+
+#     - task: AzurePowerShell@1
+#       displayName: 'Create App Service'
+#       inputs:
+#         ConnectedServiceNameSelector: ConnectedServiceNameARM
+#         ConnectedServiceNameARM: 'azure-prod-digital'
+#         ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+#         ScriptArguments: '-ResourceGroupName "$(ResourceGroupName)" -TemplateFileName "$(TemplateFileName)" -TemplateParametersFileName "$(StageCentralTemplateParametersFileName)"'
+
+# - stage: StageEast
+#   condition: and(eq(variables['build.SourceBranch'], 'refs/heads/master'), eq(variables.createStageEastInfra, True))
+#   jobs:
+#   - job: CreateInfrastructure
+
+#     variables:
+#       ResourceGroupName: at-digital-myhumana-stage-prod-east2-rg
+#       TemplateFileName: MyHumanaApi/app-service-deploy-with-stack.json
+      
+#     pool:
+#       name: VS2017
+
+#     steps:
+#     - checkout: foundationAzure
+
+#     - task: AzurePowerShell@1
+#       displayName: 'Create App Service'
+#       inputs:
+#         ConnectedServiceNameSelector: ConnectedServiceNameARM
+#         ConnectedServiceNameARM: 'azure-prod-digital'
+#         ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+#         ScriptArguments: '-ResourceGroupName "$(ResourceGroupName)" -TemplateFileName "$(TemplateFileName)" -TemplateParametersFileName "$(StageEastTemplateParametersFileName)"'
+
+# - stage: ProdCentral  
+#   condition: and(eq(variables['build.SourceBranch'], 'refs/heads/master'), eq(variables.createProdCentralInfra, True))
+#   jobs:
+#   - job: CreateInfrastructure
+
+#     variables:
+#       ResourceGroupName: at-digital-myhumana-prod-central-rg
+#       TemplateFileName: MyHumanaApi/app-service-deploy-with-stack.json
+      
+#     pool:
+#       name: VS2017
+
+#     steps:
+#     - checkout: foundationAzure
+
+#     - task: AzurePowerShell@1
+#       displayName: 'Create App Service'
+#       inputs:
+#         ConnectedServiceNameSelector: ConnectedServiceNameARM
+#         ConnectedServiceNameARM: 'azure-prod-digital'
+#         ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+#         ScriptArguments: '-ResourceGroupName "$(ResourceGroupName)" -TemplateFileName "$(TemplateFileName)" -TemplateParametersFileName "$(ProdCentralTemplateParametersFileName)"'
+
+# - stage: ProdEast
+#   condition: and(eq(variables['build.SourceBranch'], 'refs/heads/master'), eq(variables.createProdEastInfra, True))
+#   jobs:
+#   - job: CreateInfrastructure
+
+#     variables:
+#       ResourceGroupName: at-digital-myhumana-prod-east2-rg
+#       TemplateFileName: MyHumanaApi/app-service-deploy-with-stack.json
+      
+#     pool:
+#       name: VS2017
+
+#     steps:
+#     - checkout: foundationAzure
+
+#     - task: AzurePowerShell@1
+#       displayName: 'Create App Service'
+#       inputs:
+#         ConnectedServiceNameSelector: ConnectedServiceNameARM
+#         ConnectedServiceNameARM: 'azure-prod-digital'
+#         ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+#         ScriptArguments: '-ResourceGroupName "$(ResourceGroupName)" -TemplateFileName "$(TemplateFileName)" -TemplateParametersFileName "$(ProdEastTemplateParametersFileName)"'

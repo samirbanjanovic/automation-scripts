@@ -1,0 +1,20 @@
+parameters:
+- name: workingDir
+  displayName: 'Path to js frontend'
+  type: string
+
+steps:
+- task: ArtifactoryNpm@2
+  displayName: 'npm install'
+  inputs:
+    command: 'ci'
+    artifactoryService: 'Artifactory'
+    sourceRepo: 'customer-experience-management-npm-virtual'
+    workingFolder: ${{ parameters.workingDir }}
+
+- task: Npm@1
+  displayName: 'npm run build'
+  inputs:
+    command: 'custom'
+    workingDir: ${{ parameters.workingDir }}
+    customCommand: 'run build'

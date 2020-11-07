@@ -1,0 +1,1 @@
+Install-Module -Name powershell-yaml -Scope CurrentUser -Force

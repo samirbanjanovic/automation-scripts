@@ -1,0 +1,26 @@
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'Build'
+  inputs:
+    command: 'build'
+    projects: '**/**.csproj'
+    arguments: '-p:Version=$(Build.BuildNumber) --configuration $(buildConfiguration)'
+
+- script: |
+    dotnet test test/*.Tests.csproj --logger trx --collect "XPlat Code coverage" --settings CodeCoverage.runsettings --results-directory "$(Common.TestResultsDirectory)"
+  displayName: 'Test'
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '$(Common.TestResultsDirectory)\*.trx'
+    failTaskOnFailedTests: true
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish to Staging Directory - Care Experience API'
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'src/*.csproj'
+    arguments: '--no-build --configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)'

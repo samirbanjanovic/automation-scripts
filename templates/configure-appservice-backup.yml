@@ -1,0 +1,64 @@
+parameters:
+- name: dependsOnJob
+  type: string
+- name: tenantResourceGroupName
+  type: string
+- name: storageAccountResourceGroup
+  type: string
+- name: storageAccount
+  type: string
+- name: storageAccountContainerName
+  type: string
+- name: appServiceName
+  type: string
+- name: webAppName
+  type: string
+- name: configureBackup
+  type: boolean
+  default: true
+#SB: you stopped at `ServicePrincipalID` in `Enable App Service Backup`  while creating params
+
+resources:
+  repositories:
+  - repository: foundationAzure
+    type: git    
+    name: Customer Experience Management/foundation-azure
+    ref: ${{ foundationAzureBranchRef }} # refs/heads/experimental/sbanjanovic/wpa-foundation
+
+jobs:
+- job: ConfigureBackup
+  dependsOn: ${{ dependsOnJob }} # CreateAppService
+  condition: or(and(succeeded(), eq(${{ parameters.configureBackup }}, true), and(eq(${{ parameters.createAppService }}, false), eq(${{ parameters.configureBackup }}, true) # only run if AppService was created and configuration is true
+  #condition: succeeded() # only run if AppService was created and configuration is true
+  pool:
+    name: ${{ poolName }}
+  
+  variables:
+    # resourceGroupName - DevEastTenantResourceGroup: 'at-digital-myhumana-dev-nonprod-east2-rg'
+    # storageAccountResourceGroup    - NonProdStorageAccountResourceGroupName: 'at-digital-foundation-nonprod-central-rg'
+    NonProdStorageAccountName: 'humanadevcentralstorage'
+    StorageAccountContainerName: 'web-app-backups'
+    DevAppServiceName: 'myhumana-dev-east2-preventive-care'
+
+  steps:
+  - checkout: foundationAzure
+    clean: true
+  
+  - powershell: |
+      Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
+      Install-Module -Name AzureRM -Force -Scope CurrentUser -AllowClobber    
+    displayName: 'Install AzureRM Modules'
+
+  - task: PowerShell@2
+    displayName: 'Enable App Service Backup'
+    inputs:
+      targetType: filePath
+      filePath: './$(System.DefaultWorkingDirectory)/ExecuteAzureRmAppServiceBackup.ps1'
+      arguments: '-ResourceGroupName "$(DevEastTenantResourceGroup)" -StorageAccountResourceGroupName "$(NonProdStorageAccountResourceGroupName)" -StorageAccountName "$(NonProdStorageAccountName)" -StorageAccountContainerName "$(StorageAccountContainerName)" -WebAppName "$(DevAppServiceName)" -BackupName "$(DevAppServiceName)" -ServicePrincipalID "$(AzureNonProdAppId)" -ServicePrincipalKey "$(AzureNonProdSecret)" -Tenant $(AzureNonProdTenantId) -Subscription $(AzureNonProdSubscriptionId)'
+
+  - task: PowerShell@2
+    displayName: 'Schedule App Service Backup'
+    inputs:
+      targetType: filePath
+      filePath: './$(System.DefaultWorkingDirectory)/ExecuteScheduleDailyAppServiceBackupForSingleAppService.ps1'
+      arguments: '-ResourceGroupName "$(DevEastTenantResourceGroup)" -StorageAccountResourceGroupName "$(NonProdStorageAccountResourceGroupName)" -StorageAccountName "$(NonProdStorageAccountName)" -StorageAccountContainerName "$(StorageAccountContainerName)" -WebAppName "$(DevAppServiceName)" -StartHour "$(StartHour)" -RetentionPeriodInDays "$(RetentionPeriodInDays)" -ServicePrincipalID "$(AzureNonProdAppId)" -ServicePrincipalKey "$(AzureNonProdSecret)" -Tenant $(AzureNonProdTenantId) -Subscription $(AzureNonProdSubscriptionId)'

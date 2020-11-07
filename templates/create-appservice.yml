@@ -1,0 +1,72 @@
+parameters:
+- name: resourceGroupName
+  type: string
+- name: templateFileName
+  type: string
+- name: templateParametersFileName
+  type: string
+- name: configureBackup
+  type: boolean
+- name: poolName
+  type: string
+  default: VS2017
+- name: repoAlias
+  type: string
+- name: connectedServiceNameARM
+  type: string
+- name: foundationAzureBranchRef
+  type: string
+- name: createAppService
+  type: boolean
+  default: true
+
+resources:
+  repositories:
+  - repository: foundationAzure
+    type: git    
+    name: Customer Experience Management/foundation-azure
+    ref: ${{ foundationAzureBranchRef }} # refs/heads/experimental/sbanjanovic/wpa-foundation
+
+jobs:
+- job: CreateAppService
+    
+  pool:
+    name: ${{ poolName }} #VS2017
+
+  steps:  
+  - checkout: foundationAzure
+    clean: true
+
+  - task: AzurePowerShell@1
+    condition: eq(${{ parameters.createAppService }}, true)
+    displayName: 'Create App Service'
+    inputs:
+      ConnectedServiceNameSelector: ConnectedServiceNameARM
+      ConnectedServiceNameARM: ${{ connectedServiceNameARM }}  # 'azure-nonprod-digital'
+      ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
+      ScriptArguments: '-ResourceGroupName "${{ resourceGroupName }}" -TemplateFileName "${{ templateFileName }}" -TemplateParametersFileName "${{ templateParametersFileName }}"'
+
+# this should be in a separate template that's called in the parent pipeline 
+# - job: ConfigureBackup
+#   dependsOn: CreateAppService
+#   condition: or(and(succeeded(), eq(${{ parameters.configureBackup }}, true), and(eq(${{ parameters.createAppService }}, false), eq(${{ parameters.configureBackup }}, true) # only run if AppService was created and configuration is true
+#   pool:
+#     name: ${{ poolName }}
+  
+#   variables:
+#     # resourceGroupName - DevEastTenantResourceGroup: 'at-digital-myhumana-dev-nonprod-east2-rg'
+#     # storageAccount    - NonProdStorageAccountResourceGroupName: 'at-digital-foundation-nonprod-central-rg'
+#     NonProdStorageAccountName: 'humanadevcentralstorage'
+#     StorageAccountContainerName: 'web-app-backups'
+#     DevAppServiceName: 'myhumana-dev-east2-preventive-care'
+
+#   steps:
+#   - checkout: foundationAzure
+#     clean: true
+  
+#   - powershell: |
+#       Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
+#       Install-Module -Name AzureRM -Force -Scope CurrentUser -AllowClobber    
+#     displayName: 'Install AzureRM Modules'
+
+  

@@ -1,0 +1,26 @@
+parameters:
+  - name: projectKey
+    displayName: 'SonarQube Project Key'
+    type: string
+  - name: projectName
+    displayName: 'SonarQube Project Name'
+    type: string
+
+steps:
+  - task: ArtifactoryDotnetCore@1
+    inputs:
+      command: restore
+      artifactoryService: Artifactory
+      noNuGetCache: true
+      targetResolveRepo: customer-experience-management-nuget-virtual
+      rootPath: '**/*.sln'
+      buildName: $(Build.DefinitionName)
+      buildNumber: $(Build.BuildNumber)
+
+  - task: SonarQubePrepare@4
+    displayName: 'SonarQube Prep'
+    inputs:
+      SonarQube: 'SonarQube PROD'
+      scannerMode: 'MSBuild'
+      projectKey: ${{ parameters.projectKey }}
+      projectName: ${{ parameters.projectName }}
