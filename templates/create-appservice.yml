@@ -31,7 +31,7 @@ jobs:
 - job: CreateAppService
     
   pool:
-    name: ${{ poolName }} #VS2017
+    name: ${{ poolName }}
 
   steps:  
   - checkout: foundationAzure
@@ -42,7 +42,7 @@ jobs:
     displayName: 'Create App Service'
     inputs:
       ConnectedServiceNameSelector: ConnectedServiceNameARM
-      ConnectedServiceNameARM: ${{ connectedServiceNameARM }}  # 'azure-nonprod-digital'
+      ConnectedServiceNameARM: ${{ connectedServiceNameARM }} 
       ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
       ScriptArguments: '-ResourceGroupName "${{ resourceGroupName }}" -TemplateFileName "${{ templateFileName }}" -TemplateParametersFileName "${{ templateParametersFileName }}"'
 
@@ -54,11 +54,9 @@ jobs:
 #     name: ${{ poolName }}
   
 #   variables:
-#     # resourceGroupName - DevEastTenantResourceGroup: 'at-digital-myhumana-dev-nonprod-east2-rg'
-#     # storageAccount    - NonProdStorageAccountResourceGroupName: 'at-digital-foundation-nonprod-central-rg'
-#     NonProdStorageAccountName: 'humanadevcentralstorage'
+#     NonProdStorageAccountName: 'deve2strg'
 #     StorageAccountContainerName: 'web-app-backups'
-#     DevAppServiceName: 'myhumana-dev-east2-preventive-care'
+#     DevAppServiceName: 'dev-east2'
 
 #   steps:
 #   - checkout: foundationAzure
