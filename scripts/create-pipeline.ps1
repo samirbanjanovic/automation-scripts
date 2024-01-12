@@ -83,9 +83,9 @@ function GetCertifyAndCompleteSteps($repo, $pipelineParameters) {
 
 function GetTemplateRepoReference {
     $repoResource = New-Object -TypeName PSObject
-    $repoResource | Add-Member -MemberType NoteProperty -Name "repository" -value "wpa-foundation-templates"
+    $repoResource | Add-Member -MemberType NoteProperty -Name "repository" -value "foundation-templates"
     $repoResource | Add-Member -MemberType NoteProperty -Name "type" -value "git"
-    $repoResource | Add-Member -MemberType NoteProperty -Name "name" -value "Customer Experience Management/wpa-foundation"
+    $repoResource | Add-Member -MemberType NoteProperty -Name "name" -value "Custom/wpa-foundation"
     $repoResource | Add-Member -MemberType NoteProperty -Name "ref" -value "refs/heads/master"
 
 
