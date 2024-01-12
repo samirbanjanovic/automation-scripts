@@ -16,14 +16,13 @@ parameters:
 - name: configureBackup
   type: boolean
   default: true
-#SB: you stopped at `ServicePrincipalID` in `Enable App Service Backup`  while creating params
 
 resources:
   repositories:
   - repository: foundationAzure
     type: git    
-    name: Customer Experience Management/foundation-azure
-    ref: ${{ foundationAzureBranchRef }} # refs/heads/experimental/sbanjanovic/wpa-foundation
+    name: Custom/foundation-azure
+    ref: ${{ foundationAzureBranchRef }}
 
 jobs:
 - job: ConfigureBackup
@@ -34,11 +33,9 @@ jobs:
     name: ${{ poolName }}
   
   variables:
-    # resourceGroupName - DevEastTenantResourceGroup: 'at-digital-myhumana-dev-nonprod-east2-rg'
-    # storageAccountResourceGroup    - NonProdStorageAccountResourceGroupName: 'at-digital-foundation-nonprod-central-rg'
-    NonProdStorageAccountName: 'humanadevcentralstorage'
+    NonProdStorageAccountName: 'ctstore'
     StorageAccountContainerName: 'web-app-backups'
-    DevAppServiceName: 'myhumana-dev-east2-preventive-care'
+    DevAppServiceName: 'dev-test'
 
   steps:
   - checkout: foundationAzure
