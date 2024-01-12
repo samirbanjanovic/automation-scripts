@@ -12,7 +12,7 @@ steps:
       command: restore
       artifactoryService: Artifactory
       noNuGetCache: true
-      targetResolveRepo: customer-experience-management-nuget-virtual
+      targetResolveRepo: internal-nuget
       rootPath: '**/*.sln'
       buildName: $(Build.DefinitionName)
       buildNumber: $(Build.BuildNumber)
