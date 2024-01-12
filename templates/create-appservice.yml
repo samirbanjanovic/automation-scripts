@@ -24,8 +24,8 @@ resources:
   repositories:
   - repository: foundationAzure
     type: git    
-    name: Customer Experience Management/foundation-azure
-    ref: ${{ foundationAzureBranchRef }} # refs/heads/experimental/sbanjanovic/wpa-foundation
+    name: Custom/foundation-azure
+    ref: ${{ foundationAzureBranchRef }}
 
 jobs:
 - job: CreateAppService
@@ -46,25 +46,3 @@ jobs:
       ScriptPath: '$(System.DefaultWorkingDirectory)/AppService/Deploy-Azure-AppService.ps1'
       ScriptArguments: '-ResourceGroupName "${{ resourceGroupName }}" -TemplateFileName "${{ templateFileName }}" -TemplateParametersFileName "${{ templateParametersFileName }}"'
 
-# this should be in a separate template that's called in the parent pipeline 
-# - job: ConfigureBackup
-#   dependsOn: CreateAppService
-#   condition: or(and(succeeded(), eq(${{ parameters.configureBackup }}, true), and(eq(${{ parameters.createAppService }}, false), eq(${{ parameters.configureBackup }}, true) # only run if AppService was created and configuration is true
-#   pool:
-#     name: ${{ poolName }}
-  
-#   variables:
-#     NonProdStorageAccountName: 'deve2strg'
-#     StorageAccountContainerName: 'web-app-backups'
-#     DevAppServiceName: 'dev-east2'
-
-#   steps:
-#   - checkout: foundationAzure
-#     clean: true
-  
-#   - powershell: |
-#       Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
-#       Install-Module -Name AzureRM -Force -Scope CurrentUser -AllowClobber    
-#     displayName: 'Install AzureRM Modules'
-
-  
