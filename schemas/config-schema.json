@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "http://humana.com/wpa/code/foundation/dotnet-repo-init.json",
+    "$id": "http://coffee-to-code.dev/azdo/code/foundation/dotnet-repo-init.json",
     "title" : "Initialize Dotnet Repo",
     "description": "Settings for generating a new dotnet core repo that hosts specified project type",
     "type" :"object",
@@ -14,7 +14,7 @@
                 "description" : "email of user creating this repo",
                 "type":"string",
                 "format": "email",
-                "pattern": "^[a-zA-z]*[0-9]*@humana\\.com"
+                "pattern": "^[a-zA-z]*[0-9]*@coffee-to-code\\.dev"
             },
             "required": ["name", "email"]
         },
