@@ -46,12 +46,10 @@ function GenerateAssetData($config, $repo) {
     $asset = New-Object -TypeName PSObject    
     $asset | Add-Member -MemberType NoteProperty -Name "version" -Value 1
     $asset | Add-Member -MemberType NoteProperty -Name "platform" -Value "ado"
-    $asset | Add-Member -MemberType NoteProperty -Name "organization" -Value "humana"
-    $asset | Add-Member -MemberType NoteProperty -Name "project" -Value "Customer Experience Management"
+    $asset | Add-Member -MemberType NoteProperty -Name "organization" -Value "sb"
+    $asset | Add-Member -MemberType NoteProperty -Name "project" -Value "Custom"
     $asset | Add-Member -MemberType NoteProperty -Name "repositoryType" -Value "git"
     $asset | Add-Member -MemberType NoteProperty -Name "repository" -Value ($repo | Select-Object -expand "name")
-    $asset | Add-Member -MemberType NoteProperty -Name "iserverAssociatedRecords" -Value ($assetyml | Select-Object -expand "iserverAssociatedRecords")
-    $asset | Add-Member -MemberType NoteProperty -Name "serviceNowAssociatedRecords" -Value ($assetyml | Select-Object -expand "serviceNowAssociatedRecords")
 
     $asset.iserverAssociatedRecords | Add-Member -MemberType NoteProperty -Name "addedBy" -Value $user.email
     $asset.serviceNowAssociatedRecords | Add-Member -MemberType NoteProperty -Name "addedBy" -Value $user.email
