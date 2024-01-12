@@ -9,7 +9,7 @@ steps:
   inputs:
     command: 'ci'
     artifactoryService: 'Artifactory'
-    sourceRepo: 'customer-experience-management-npm-virtual'
+    sourceRepo: 'npm-virtual'
     workingFolder: ${{ parameters.workingDir }}
 
 - task: Npm@1
